@@ -22,6 +22,7 @@ import { RaceCameraMode, RaceController } from '../systems/RaceController.js';
 import { RenderModeSystem } from '../systems/RenderModeSystem.js';
 import { TransformSystem } from '../systems/TransformSystem.js';
 import { Barriers } from '../world/Barriers.js';
+import { Billboard } from '../world/Billboard.js';
 import { Curbs } from '../world/Curbs.js';
 import { Forest } from '../world/Forest.js';
 import { PitArea } from '../world/PitArea.js';
@@ -85,6 +86,7 @@ export class SceneManager {
     this.createStartGate();
     this.createStreetLamps();
     this.createRocks();
+    this.createBillboard();
     this.createForest();
     this.createPlayerCar();
     this.registerRenderModeTargets();
@@ -269,8 +271,13 @@ export class SceneManager {
       });
   }
 
+  createBillboard() {
+    this.billboard = new Billboard(this.track);
+    this.buildingGroup.add(this.billboard.group);
+  }
+
   createForest() {
-    this.forest = new Forest(this.track, [this.pitArea, this.startGate]);
+    this.forest = new Forest(this.track, [this.pitArea, this.startGate, this.billboard]);
     this.treeGroup.add(this.forest.group);
   }
 
@@ -478,6 +485,7 @@ export class SceneManager {
     this.streetLampObjects.forEach((lamp) => lamp.setNightEnabled(nightEnabled));
     this.pitArea.setNightEnabled(nightEnabled);
     this.startGate.setNightEnabled(nightEnabled);
+    this.billboard?.setNightEnabled(nightEnabled);
     this.playerCar.setHeadlightsEnabled(nightEnabled);
   }
 

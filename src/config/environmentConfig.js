@@ -147,7 +147,7 @@ export const teapotTrophyConfig = {
 };
 
 export const startGateConfig = {
-  trackT: 0.13,
+  trackT: 0.122,
   side: -1,
   postOffset: 5.7,
   postWidth: 0.45,
@@ -169,6 +169,41 @@ export const startGateConfig = {
     radius: 0.16,
     height: 0.12,
     surfaceTargetY: 0.05,
+  },
+};
+
+export const billboardConfig = {
+  logoPath: '/logo.png',
+  placement: {
+    t: 0.055,
+    side: 1,
+    lateralOffset: 10.2,
+    rotationOffset: THREE.MathUtils.degToRad(-7),
+  },
+  panel: {
+    width: 6.4,
+    height: 3.05,
+    depth: 0.24,
+    bottomHeight: 1.75,
+    frontColor: 0xffffff,
+    sideColor: 0x20262a,
+    backColor: 0x161b1e,
+    roughness: 0.58,
+    metalness: 0.04,
+    dayEmissiveIntensity: 0.28,
+    nightEmissiveIntensity: 0.82,
+  },
+  poles: {
+    radius: 0.12,
+    height: 4.65,
+    spacing: 4.95,
+    color: 0xf3f1e6,
+    roughness: 0.62,
+    metalness: 0.08,
+  },
+  exclusionPadding: {
+    width: 1.8,
+    length: 1.4,
   },
 };
 

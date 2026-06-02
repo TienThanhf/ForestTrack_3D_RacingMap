@@ -197,6 +197,7 @@ The structure is a target architecture. Files should be added only when their ph
 | Player car model | TBD | TBD | Main imported GLB model |
 | Road texture | TBD | TBD | Track material |
 | Grass texture | TBD | TBD | Ground material |
+| Forest Track logo | Project asset (`public/logo.png`) | Course project local asset | Advertising billboard texture |
 
 ## Phase 0 Acceptance Criteria
 
