@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { sceneColors } from '../config/sceneConfig.js';
 
 const RENDERER_SETTINGS = {
-  shadowMapType: THREE.PCFShadowMap,
+  shadowMapType: THREE.PCFSoftShadowMap,
   maxPixelRatio: 2,
 };
 
@@ -13,6 +13,9 @@ export class RendererManager {
 
     this.renderer.setClearColor(sceneColors.background);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, RENDERER_SETTINGS.maxPixelRatio));
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.0;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = RENDERER_SETTINGS.shadowMapType;
 

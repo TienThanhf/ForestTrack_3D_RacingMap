@@ -8,11 +8,15 @@ export class InputController {
     environmentSystem,
     renderModeSystem,
     transformSystem,
+    focusExploreCamera,
+    raceCameraActions,
   }) {
     this.modeManager = modeManager;
     this.environmentSystem = environmentSystem;
     this.renderModeSystem = renderModeSystem;
     this.transformSystem = transformSystem;
+    this.focusExploreCamera = focusExploreCamera;
+    this.raceCameraActions = raceCameraActions;
     this.actions = {
       accelerate: false,
       brake: false,
@@ -89,9 +93,17 @@ export class InputController {
       return;
     }
 
+    if (this.focusExploreCamera && this.handleFocusShortcut(event)) {
+      return;
+    }
+
     if (event.code === 'Escape' && this.modeManager.isRaceMode()) {
       event.preventDefault();
       this.modeManager.setMode(ApplicationMode.EXPLORE);
+      return;
+    }
+
+    if (this.handleRaceCameraShortcut(event)) {
       return;
     }
 
@@ -106,6 +118,10 @@ export class InputController {
   }
 
   handleKeyUp(event) {
+    if (this.handleRaceCameraShortcutRelease(event)) {
+      return;
+    }
+
     const action = this.keyMap.get(event.code);
 
     if (!action) {
@@ -155,10 +171,66 @@ export class InputController {
     return true;
   }
 
+  handleFocusShortcut(event) {
+    if (!this.modeManager.isExploreMode() || event.code !== 'KeyF') {
+      return false;
+    }
+
+    event.preventDefault();
+    this.focusExploreCamera();
+
+    return true;
+  }
+
+  handleRaceCameraShortcut(event) {
+    if (!this.modeManager.isRaceMode() || !this.raceCameraActions) {
+      return false;
+    }
+
+    if (event.code === 'KeyQ') {
+      event.preventDefault();
+      this.raceCameraActions.sideCheck(true);
+      return true;
+    }
+
+    if (event.code === 'KeyE') {
+      event.preventDefault();
+      this.raceCameraActions.rearCheck(true);
+      return true;
+    }
+
+    return false;
+  }
+
+  handleRaceCameraShortcutRelease(event) {
+    if (!this.raceCameraActions) {
+      return false;
+    }
+
+    if (event.code === 'KeyQ') {
+      event.preventDefault();
+      this.raceCameraActions.sideCheck(false);
+      return true;
+    }
+
+    if (event.code === 'KeyE') {
+      event.preventDefault();
+      this.raceCameraActions.rearCheck(false);
+      return true;
+    }
+
+    return false;
+  }
+
   clearDrivingActions() {
     Object.keys(this.actions).forEach((action) => {
       this.actions[action] = false;
     });
+
+    if (this.raceCameraActions) {
+      this.raceCameraActions.sideCheck(false);
+      this.raceCameraActions.rearCheck(false);
+    }
   }
 
   shouldIgnoreKeyboardEvent(event) {

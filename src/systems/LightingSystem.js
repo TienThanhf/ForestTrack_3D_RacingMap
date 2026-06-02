@@ -20,6 +20,9 @@ export class LightingSystem {
     this.mainLight.shadow.camera.near = shadowConfig.cameraNear;
     this.mainLight.shadow.camera.far = shadowConfig.cameraFar;
     this.mainLight.shadow.bias = shadowConfig.bias;
+    this.mainLight.shadow.normalBias = shadowConfig.normalBias;
+    this.mainLight.shadow.radius = shadowConfig.radius;
+    this.mainLight.shadow.camera.updateProjectionMatrix();
     this.scene.add(this.mainLight);
 
     this.applyEnvironment(EnvironmentMode.DAY);
@@ -29,11 +32,27 @@ export class LightingSystem {
     const preset = mode === EnvironmentMode.NIGHT ? this.config.night : this.config.day;
 
     this.scene.background = new THREE.Color(preset.background);
+    this.applyFog(preset.fog);
     this.hemisphereLight.color.setHex(preset.hemisphere.skyColor);
     this.hemisphereLight.groundColor.setHex(preset.hemisphere.groundColor);
     this.hemisphereLight.intensity = preset.hemisphere.intensity;
     this.mainLight.color.setHex(preset.sun.color);
     this.mainLight.intensity = preset.sun.intensity;
     this.mainLight.position.copy(preset.sun.position);
+  }
+
+  applyFog(fogConfig) {
+    if (!fogConfig) {
+      this.scene.fog = null;
+      return;
+    }
+
+    if (!(this.scene.fog instanceof THREE.FogExp2)) {
+      this.scene.fog = new THREE.FogExp2(fogConfig.color, fogConfig.density);
+      return;
+    }
+
+    this.scene.fog.color.setHex(fogConfig.color);
+    this.scene.fog.density = fogConfig.density;
   }
 }

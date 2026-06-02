@@ -4,7 +4,6 @@ export const sceneColors = {
   background: 0x9ed9f3,
   nightBackground: 0x101b33,
   ground: 0x62bf55,
-  shadowMarker: 0xf2b84b,
 };
 
 export const groundConfig = {
@@ -15,22 +14,32 @@ export const cameraConfig = {
   fieldOfView: 48,
   nearPlane: 0.1,
   farPlane: 500,
-  position: new THREE.Vector3(30, 24, 30),
+  position: new THREE.Vector3(32, 26, 34),
   target: new THREE.Vector3(0, 0, 0),
 };
 
 export const orbitControlsConfig = {
-  dampingFactor: 0.08,
-  minDistance: 18,
-  maxDistance: 90,
-  minPolarAngle: THREE.MathUtils.degToRad(22),
-  maxPolarAngle: THREE.MathUtils.degToRad(78),
+  exploreDamping: 0.1,
+  zoomSpeed: 0.72,
+  panSpeed: 0.72,
+  minDistance: 12,
+  maxDistance: 105,
+  minPolarAngle: THREE.MathUtils.degToRad(18),
+  maxPolarAngle: THREE.MathUtils.degToRad(84),
   maxTargetRadius: 28,
+  groundClearance: 1.2,
+  focusDistanceMultiplier: 1.7,
+  minFocusDistance: 12,
+  maxFocusDistance: 64,
 };
 
 export const daylightConfig = {
   day: {
     background: sceneColors.background,
+    fog: {
+      color: sceneColors.background,
+      density: 0.0055,
+    },
     hemisphere: {
       skyColor: 0xd7f5ff,
       groundColor: 0x7aa35a,
@@ -44,6 +53,10 @@ export const daylightConfig = {
   },
   night: {
     background: sceneColors.nightBackground,
+    fog: {
+      color: sceneColors.nightBackground,
+      density: 0.009,
+    },
     hemisphere: {
       skyColor: 0x263a68,
       groundColor: 0x17251e,
@@ -58,14 +71,11 @@ export const daylightConfig = {
 };
 
 export const shadowConfig = {
-  mapSize: 1024,
-  cameraSize: 54,
+  mapSize: 2048,
+  cameraSize: 62,
   cameraNear: 1,
   cameraFar: 120,
-  bias: -0.0004,
-};
-
-export const developmentShadowMarkerConfig = {
-  size: 2,
-  position: new THREE.Vector3(0, 1, 0),
+  bias: -0.00025,
+  normalBias: 0.018,
+  radius: 1.6,
 };

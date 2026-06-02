@@ -6,6 +6,7 @@ import { EnvironmentSystem } from './systems/EnvironmentSystem.js';
 import { ModeManager } from './systems/ModeManager.js';
 import { RenderModeSystem } from './systems/RenderModeSystem.js';
 import { ModeControls } from './ui/ModeControls.js';
+import { StartScreen } from './ui/StartScreen.js';
 
 const appElement = document.querySelector('#app');
 
@@ -30,6 +31,14 @@ new ModeControls({
   transformSystem: sceneManager.transformSystem,
   cameraManager,
   orbitControls: sceneManager.controls,
+  raceController: sceneManager.raceController,
+  carOptions: sceneManager.getCarOptions(),
+  getActiveCarId: () => sceneManager.getActiveCarId(),
+  selectActiveCar: (carId) => sceneManager.selectActiveCar(carId),
+});
+new StartScreen({
+  container: document.body,
+  modeManager,
 });
 
 function resizeApplication() {

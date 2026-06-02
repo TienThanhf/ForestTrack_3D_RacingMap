@@ -2,6 +2,33 @@ import * as THREE from 'three';
 import { forestConfig } from '../config/environmentConfig.js';
 import { groundConfig } from '../config/sceneConfig.js';
 
+const WIND_CONFIG = {
+  direction: new THREE.Vector2(0.65, 0.35).normalize(),
+  clusterCellSize: 18,
+  directionVariationDegrees: 7,
+  amplitudeDegrees: {
+    min: 4.7,
+    max: 6.4,
+  },
+  localAmplitudeOffsetDegrees: {
+    min: -0.55,
+    max: 0.55,
+  },
+  speed: {
+    min: 0.78,
+    max: 1.02,
+  },
+  localSpeedOffset: {
+    min: -0.05,
+    max: 0.05,
+  },
+  clusterPhaseVariation: 0.26,
+  wavePhaseSpacing: 0.42,
+  localPhaseVariation: 0.18,
+  directionalBiasDegrees: 0.5,
+  staticLeanDegrees: 0.85,
+};
+
 export class Forest {
   constructor(raceTrack, exclusionProviders = [], config = forestConfig) {
     this.raceTrack = raceTrack;
@@ -9,6 +36,8 @@ export class Forest {
     this.exclusionZones = exclusionProviders.flatMap((provider) => provider.getExclusionZones());
     this.group = new THREE.Group();
     this.group.name = 'Forest';
+    this.animatedTrees = [];
+    this.windClusters = new Map();
 
     this.trackSamples = this.createTrackSamples();
     this.createTrees();
@@ -30,6 +59,7 @@ export class Forest {
     const groundLimit = groundConfig.size / 2 - this.config.groundMargin;
     let attempts = 0;
 
+    // Seeded placement keeps trees stable while avoiding the road and start structures.
     while (treePositions.length < this.config.treeCount && attempts < this.config.treeCount * 35) {
       attempts += 1;
 
@@ -101,10 +131,132 @@ export class Forest {
     tree.rotation.y = random() * Math.PI * 2;
     tree.scale.setScalar(scale);
 
-    this.addTrunk(tree);
-    this.addFoliage(tree, foliageColor);
+    const trunkGroup = new THREE.Group();
+    trunkGroup.name = 'TreeTrunk';
+    const swayGroup = new THREE.Group();
+    swayGroup.name = 'TreeCanopySway';
+
+    this.addTrunk(trunkGroup);
+    this.addFoliage(swayGroup, foliageColor);
+
+    tree.add(trunkGroup, swayGroup);
+    this.registerTreeSway(tree, swayGroup, random);
 
     return tree;
+  }
+
+  registerTreeSway(tree, swayGroup, random) {
+    const cluster = this.getOrCreateWindCluster(tree.position, random);
+    const localWindDirection = cluster.windDirection.clone().rotateAround(
+      new THREE.Vector2(0, 0),
+      -tree.rotation.y,
+    );
+    const localAmplitudeOffset = THREE.MathUtils.degToRad(THREE.MathUtils.lerp(
+      WIND_CONFIG.localAmplitudeOffsetDegrees.min,
+      WIND_CONFIG.localAmplitudeOffsetDegrees.max,
+      random(),
+    ));
+    const staticLean = THREE.MathUtils.degToRad(
+      THREE.MathUtils.lerp(-WIND_CONFIG.staticLeanDegrees, WIND_CONFIG.staticLeanDegrees, random()),
+    );
+    const directionalBias = THREE.MathUtils.degToRad(WIND_CONFIG.directionalBiasDegrees);
+
+    swayGroup.rotation.x = staticLean * localWindDirection.y;
+    swayGroup.rotation.z = -staticLean * localWindDirection.x;
+
+    swayGroup.userData.clusterWindDirection = cluster.windDirection;
+    swayGroup.userData.clusterSwayAmplitude = cluster.swayAmplitude;
+    swayGroup.userData.clusterSwaySpeed = cluster.swaySpeed;
+    swayGroup.userData.clusterPhase = cluster.phase;
+    swayGroup.userData.localAmplitudeOffset = localAmplitudeOffset;
+    swayGroup.userData.localSpeedOffset = THREE.MathUtils.lerp(
+      WIND_CONFIG.localSpeedOffset.min,
+      WIND_CONFIG.localSpeedOffset.max,
+      random(),
+    );
+    swayGroup.userData.localPhaseOffset = THREE.MathUtils.lerp(
+      -WIND_CONFIG.localPhaseVariation,
+      WIND_CONFIG.localPhaseVariation,
+      random(),
+    );
+    swayGroup.userData.windInfluence = THREE.MathUtils.lerp(0.92, 1.04, random());
+    swayGroup.userData.windDirectionX = localWindDirection.x;
+    swayGroup.userData.windDirectionZ = localWindDirection.y;
+    swayGroup.userData.directionalBias = directionalBias;
+    swayGroup.userData.baseRotationX = swayGroup.rotation.x;
+    swayGroup.userData.baseRotationZ = swayGroup.rotation.z;
+
+    this.animatedTrees.push(swayGroup);
+  }
+
+  getOrCreateWindCluster(position, random) {
+    const cellX = Math.floor(position.x / WIND_CONFIG.clusterCellSize);
+    const cellZ = Math.floor(position.z / WIND_CONFIG.clusterCellSize);
+    const clusterKey = `${cellX}:${cellZ}`;
+
+    if (!this.windClusters.has(clusterKey)) {
+      this.windClusters.set(clusterKey, this.createWindCluster(cellX, cellZ, random));
+    }
+
+    return this.windClusters.get(clusterKey);
+  }
+
+  createWindCluster(cellX, cellZ, random) {
+    const directionVariation = THREE.MathUtils.degToRad(THREE.MathUtils.lerp(
+      -WIND_CONFIG.directionVariationDegrees,
+      WIND_CONFIG.directionVariationDegrees,
+      random(),
+    ));
+    const windDirection = WIND_CONFIG.direction.clone().rotateAround(
+      new THREE.Vector2(0, 0),
+      directionVariation,
+    );
+    const wavePhase = (cellX * WIND_CONFIG.direction.x + cellZ * WIND_CONFIG.direction.y)
+      * WIND_CONFIG.wavePhaseSpacing;
+    const phaseVariation = THREE.MathUtils.lerp(
+      -WIND_CONFIG.clusterPhaseVariation,
+      WIND_CONFIG.clusterPhaseVariation,
+      random(),
+    );
+
+    return {
+      windDirection,
+      swayAmplitude: THREE.MathUtils.degToRad(THREE.MathUtils.lerp(
+        WIND_CONFIG.amplitudeDegrees.min,
+        WIND_CONFIG.amplitudeDegrees.max,
+        random(),
+      )),
+      swaySpeed: THREE.MathUtils.lerp(WIND_CONFIG.speed.min, WIND_CONFIG.speed.max, random()),
+      phase: wavePhase + phaseVariation,
+    };
+  }
+
+  update(timeSeconds) {
+    for (let index = 0; index < this.animatedTrees.length; index += 1) {
+      const swayGroup = this.animatedTrees[index];
+      const {
+        clusterSwayAmplitude,
+        clusterSwaySpeed,
+        clusterPhase,
+        localAmplitudeOffset,
+        localSpeedOffset,
+        localPhaseOffset,
+        windInfluence,
+        windDirectionX,
+        windDirectionZ,
+        directionalBias,
+        baseRotationX,
+        baseRotationZ,
+      } = swayGroup.userData;
+      const swaySpeed = clusterSwaySpeed + localSpeedOffset;
+      const swayAmplitude = clusterSwayAmplitude + localAmplitudeOffset;
+      const swayPhase = clusterPhase + localPhaseOffset;
+      const sway = Math.sin(timeSeconds * swaySpeed + swayPhase) * swayAmplitude * windInfluence;
+      const bias = directionalBias * windInfluence;
+
+      swayGroup.rotation.x = baseRotationX + (sway + bias) * windDirectionZ;
+      swayGroup.rotation.z = baseRotationZ - (sway + bias) * windDirectionX;
+    }
   }
 
   addTrunk(tree) {

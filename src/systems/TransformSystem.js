@@ -6,6 +6,8 @@ export const TransformMode = {
   SCALE: 'scale',
 };
 
+export const NO_TRANSFORM_TARGET = 'none';
+
 export class TransformSystem {
   constructor({ camera, domElement, orbitControls }) {
     this.camera = camera;
@@ -49,10 +51,6 @@ export class TransformSystem {
     this.targets.set(id, target);
     this.targetOrder.push(id);
 
-    if (!this.currentTargetId) {
-      this.selectTarget(id);
-    }
-
     return target;
   }
 
@@ -65,6 +63,17 @@ export class TransformSystem {
   }
 
   selectTarget(id) {
+    if (id === NO_TRANSFORM_TARGET || id === null) {
+      this.currentTargetId = null;
+      this.controls.detach();
+      this.helper.visible = false;
+      this.controls.enabled = false;
+      this.dragging = false;
+      this.updateOrbitControlsState();
+      this.notify();
+      return;
+    }
+
     if (!this.targets.has(id)) {
       return;
     }
@@ -88,8 +97,8 @@ export class TransformSystem {
 
   setEnabled(enabled) {
     this.enabled = enabled;
-    this.controls.enabled = enabled;
-    this.helper.visible = enabled;
+    this.controls.enabled = enabled && Boolean(this.currentTargetId);
+    this.helper.visible = enabled && Boolean(this.currentTargetId);
 
     if (!enabled) {
       this.dragging = false;
@@ -121,6 +130,10 @@ export class TransformSystem {
 
       return { id: target.id, label: target.label };
     });
+  }
+
+  getSelectedRoot() {
+    return this.targets.get(this.currentTargetId)?.root || null;
   }
 
   getState() {

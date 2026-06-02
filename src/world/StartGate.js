@@ -7,12 +7,15 @@ export class StartGate {
     this.config = config;
     this.group = new THREE.Group();
     this.group.name = 'StartGate';
+    this.roadLights = [];
+    this.roadLightMaterials = [];
 
     this.anchor = this.getTrackAnchor(config.trackT, config.side);
     this.group.position.copy(this.anchor.position);
     this.group.rotation.y = Math.atan2(this.anchor.tangent.x, this.anchor.tangent.z);
 
     this.createGate();
+    this.setNightEnabled(false);
   }
 
   getTrackAnchor(t, side) {
@@ -67,6 +70,69 @@ export class StartGate {
       accent.receiveShadow = true;
 
       this.group.add(accent);
+    });
+
+    this.createRoadLights();
+  }
+
+  createRoadLights() {
+    const lightConfig = this.config.roadLights;
+    const lampY = this.config.postHeight - this.config.crossbarHeight - lightConfig.height / 2;
+    const lampMaterial = new THREE.MeshStandardMaterial({
+      color: lightConfig.color,
+      emissive: lightConfig.color,
+      emissiveIntensity: 0,
+      roughness: 0.45,
+    });
+    const lampGeometry = new THREE.CylinderGeometry(
+      lightConfig.radius,
+      lightConfig.radius,
+      lightConfig.height,
+      12,
+    );
+
+    lightConfig.positions.forEach((x) => {
+      // Visible lamp meshes on the start gate bar sit directly under the horizontal crossbar.
+      const lamp = new THREE.Mesh(lampGeometry, lampMaterial.clone());
+      lamp.position.set(x, lampY, 0);
+      lamp.rotation.x = Math.PI / 2;
+      lamp.castShadow = true;
+      lamp.receiveShadow = true;
+      this.group.add(lamp);
+      this.roadLightMaterials.push(lamp.material);
+
+      // Start gate downward road lights aim from the crossbar underside to the start-line road surface.
+      const spotLight = new THREE.SpotLight(
+        lightConfig.color,
+        lightConfig.nightIntensity,
+        lightConfig.distance,
+        lightConfig.angle,
+        lightConfig.penumbra,
+        lightConfig.decay,
+      );
+      const target = new THREE.Object3D();
+
+      spotLight.position.set(x, lampY - lightConfig.height / 2, 0);
+      target.position.set(x, lightConfig.surfaceTargetY, 0);
+      spotLight.target = target;
+      spotLight.castShadow = false;
+
+      this.group.add(spotLight);
+      this.group.add(target);
+      this.roadLights.push(spotLight);
+    });
+  }
+
+  setNightEnabled(enabled) {
+    const lightConfig = this.config.roadLights;
+
+    // Day/night intensity update for start gate lights follows the existing environment switch.
+    this.roadLights.forEach((light) => {
+      light.visible = enabled;
+      light.intensity = enabled ? lightConfig.nightIntensity : lightConfig.dayIntensity;
+    });
+    this.roadLightMaterials.forEach((material) => {
+      material.emissiveIntensity = enabled ? 1.4 : 0;
     });
   }
 

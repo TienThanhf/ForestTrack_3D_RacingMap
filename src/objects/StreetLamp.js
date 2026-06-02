@@ -80,11 +80,25 @@ export class StreetLamp {
       this.config.lightDecay,
     );
     this.pointLight.position.copy(this.config.headOffset);
-    this.pointLight.castShadow = false;
+    // Night lighting adjustment: street lamps cast local shadows on the road/ground.
+    this.pointLight.castShadow = true;
+    this.configureLampShadow(this.pointLight);
 
     this.demoGroup.add(arm);
     this.demoGroup.add(bulb);
     this.group.add(this.pointLight);
+  }
+
+  configureLampShadow(light) {
+    const shadow = this.config.shadow;
+
+    light.shadow.mapSize.set(shadow.mapSize, shadow.mapSize);
+    light.shadow.camera.near = shadow.cameraNear;
+    light.shadow.camera.far = this.config.lightDistance;
+    light.shadow.bias = shadow.bias;
+    light.shadow.normalBias = shadow.normalBias;
+    light.shadow.radius = shadow.radius;
+    light.shadow.camera.updateProjectionMatrix();
   }
 
   getDemoGroup() {
@@ -97,6 +111,7 @@ export class StreetLamp {
     }
 
     this.pointLight.visible = enabled;
+    this.pointLight.castShadow = enabled;
     this.pointLight.intensity = enabled ? this.config.lightIntensity : 0;
     this.bulbMaterial.color.setHex(enabled ? this.config.bulbNightColor : this.config.bulbDayColor);
     this.bulbMaterial.emissive.setHex(enabled ? this.config.bulbEmissiveColor : 0x000000);
