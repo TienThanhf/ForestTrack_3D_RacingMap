@@ -17,7 +17,7 @@ export class StartScreen {
 
     const badge = document.createElement('p');
     badge.className = 'start-screen__badge';
-    badge.textContent = 'Low-Poly Racing';
+    badge.textContent = 'Low-Poly Racing Map';
 
     const title = document.createElement('h1');
     title.className = 'start-screen__title';
