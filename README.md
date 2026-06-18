@@ -19,11 +19,15 @@
 -   **Course Name:** Computer Graphics
 -   **Course:** CS105
 -   **Class:** CS105.Q21
--   **Instructor**: Cap Pham Đinh Thang
+-   **Instructor**: Cáp Phạm Đình Thăng
 
 # Low-Poly Forest Racing Track 3D
 
 # Installation
+Clone this repository:
+```sh
+git clone https://github.com/TienThanhf/ForestTrack_3D_RacingMap.git
+```
 
 ## Structure
 
