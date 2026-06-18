@@ -8,8 +8,8 @@
 
 ## GROUP MEMBERS
 
-| STT |Student ID|       Full Names |                              Email                        |
-| --- | :------: | --------------: |  --------------------------------------------------------: | ---------------------------------------:|
+| STT |Student ID|       Full Names |           Email                        |
+| --- | :------: | --------------: | ---------------------------------------:|
 | 1   | 23521085 |  Nguyễn Trọng Nhân  | 23521085@gm.uit.edu.vn                  |
 | 2   | 23521376 | Nguyễn Tấn Tài | 23521376@gm.uit.edu.vn                  |
 | 3   | 23521454 | Nguyễn Tiến Thành | 23521454@gm.uit.edu.vn                  |
@@ -66,7 +66,6 @@ ForestTrack_3D_RacingMap/
 ├── package-lock.json
 
 ```
-
 ## How to run
 - First you need install package of threejs
 - Step 1: Install Node.js. We'll need it to load manage dependencies and to run our build tool.
