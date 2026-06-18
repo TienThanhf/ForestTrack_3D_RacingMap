@@ -8,7 +8,7 @@
 
 ## GROUP MEMBERS
 
-| STT |Student ID|       Full Names |                     Github                                 |            Email                        |
+| STT |Student ID|       Full Names |                              Email                        |
 | --- | :------: | --------------: |  --------------------------------------------------------: | ---------------------------------------:|
 | 1   | 23521085 |  Nguyễn Trọng Nhân  | 23521085@gm.uit.edu.vn                  |
 | 2   | 23521376 | Nguyễn Tấn Tài | 23521376@gm.uit.edu.vn                  |
